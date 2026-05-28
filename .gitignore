@@ -1,0 +1,7 @@
+.venv
+.env
+streamlit-test
+data/detran/*.csv
+reject
+.ruff_cache
+__pycache__
