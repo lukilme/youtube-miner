@@ -527,6 +527,7 @@ class YouTubeClient:
             "estilo": "26",
             "beleza": "26",
             "educacao": "27",
+            "Educação": "27",
             "ciencia": "28",
             "tecnologia": "28",
             "tech": "28",
