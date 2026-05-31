@@ -105,6 +105,15 @@ class YouTubeClient:
         self._last_request_ts = 0.0
         self._burst_tokens = self.rate_limit.burst
 
+    @staticmethod
+    def _build_logger() -> logging.Logger:
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s [%(levelname)s] %(message)s",
+            datefmt="%H:%M:%S",
+        )
+        return logging.getLogger("YouTubeClient")
+
     def fetch_most_popular(
         self,
         region_code: str = "BR",
@@ -517,6 +526,7 @@ class YouTubeClient:
             "tutorial": "26",
             "estilo": "26",
             "beleza": "26",
+            "educacao": "27",
             "ciencia": "28",
             "tecnologia": "28",
             "tech": "28",
