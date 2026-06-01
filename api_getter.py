@@ -69,6 +69,7 @@ class YouTubeClient:
         "items(id,"
         "snippet(title,description,customUrl,publishedAt,country,"
         "thumbnails(default(url))),"
+        "contentDetails(duration),"
         "statistics(viewCount,subscriberCount,hiddenSubscriberCount,videoCount))"
     )
 
@@ -450,7 +451,7 @@ class YouTubeClient:
 
         all_comments: List[Comment] = []
         for idx, video in enumerate(videos, start=1):
-            logger.info("Comentários %d/%d – %s", idx, len(videos), video.video_id)
+            logger.info("Comentários %d/%d - %s", idx, len(videos), video.video_id)
             comments: list[Comment] = self.fetch_comments(
                 video_id=video.video_id,
                 max_pages=comments_pages,

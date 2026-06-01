@@ -311,29 +311,18 @@ class YouTubePipeline:
 
         logger.info(f"🔎 {len(raw_videos)} vídeos descobertos")
 
-        # Converter objetos -> ids para enrichment
         raw_video_ids = [v.video_id for v in raw_videos]
 
-        # --------------------------------------------------
-        # 2) ENRIQUECIMENTO (retorna dict da API)
-        # --------------------------------------------------
         videos = self.enrich_video_details(raw_video_ids)
 
-        # --------------------------------------------------
-        # 3) FILTROS
-        # --------------------------------------------------
         videos = self.filter_videos(videos)
         results["videos"] = videos
 
         logger.info(f"📹 {len(videos)} vídeos após enriquecimento e filtros")
 
-        # 🔥 A PARTIR DAQUI USAMOS APENAS VIDEOS ENRIQUECIDOS
         logger.info(videos)
         video_ids = [v["video_id"] for v in videos]
 
-        # --------------------------------------------------
-        # 4) EXTRAÇÃO DE COMENTÁRIOS
-        # --------------------------------------------------
         all_comments = []
 
         for idx, video in enumerate(videos, 1):
@@ -355,9 +344,7 @@ class YouTubePipeline:
 
         results["comments"] = all_comments
 
-        # --------------------------------------------------
-        # 5) ENRIQUECIMENTO DE CANAIS
-        # --------------------------------------------------
+
         logger.warning(videos)
         channel_ids = list(
             {v["channel_id"] for v in videos if "channel_id" in v and v["channel_id"]}
@@ -368,17 +355,11 @@ class YouTubePipeline:
         channels = self.enrich_channel_details(channel_ids)
         results["channels"] = channels
 
-        # --------------------------------------------------
-        # 6) LEGENDAS (opcional e caro)
-        # --------------------------------------------------
         if self.config.fetch_subtitles:
             logger.info("📝 Extraindo legendas (limitado a 10 vídeos)")
             subtitles = self.extract_subtitles(video_ids[:10])
             results["subtitles"] = subtitles
 
-        # --------------------------------------------------
-        # 7) SALVAMENTO FINAL
-        # --------------------------------------------------
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         self.client.save_json(
@@ -405,7 +386,6 @@ class YouTubePipeline:
                 channels_json, self.config.output_dir / f"channels_{timestamp}.json"
             )
 
-        ##self.save_checkpoint(checkpoint_name, results)
 
         print(self.stats.report())
 
@@ -445,7 +425,7 @@ def example_category_with_comments():
         max_comments_per_video=100,
         fetch_comments=True,
         fetch_subtitles=False,
-        min_views=10000,  # Filtrar vídeos com menos de 10k views
+        min_views=10000,
         rate_limit_rps=2.0,
     )
 
