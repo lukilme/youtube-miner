@@ -1,7 +1,7 @@
 from numba.core.types import Any
 from dataclasses import asdict
 from altair import Dict
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from altair.utils import Optional
 import re
 from typing import List
@@ -18,6 +18,8 @@ class YouTubeAuthError(YouTubeAPIError):
 class YouTubeQuotaError(YouTubeAPIError):
     """Cota diária da API esgotada (HTTP 403)."""
 
+class CommentsDisabledError(YouTubeAPIError):
+     """Não possui comentário, bloqueado pelo autor do vídeo (HTTP 403)."""
 
 @dataclass
 class RateLimitConfig:
@@ -53,6 +55,8 @@ class Video:
     like_count: Optional[int]
     comment_count: Optional[int]
 
+    def to_dict(self):
+        return asdict(self)
 
 @dataclass
 class Comment:
@@ -71,6 +75,8 @@ class Comment:
     video_like_count: Optional[int] = None
     video_comment_count: Optional[int] = None
 
+    def to_dict(self):
+        return asdict(self)
 
 @dataclass
 class Channel:
@@ -86,6 +92,8 @@ class Channel:
     video_count: Optional[int]
     hidden_subscriber_count: bool = False
 
+    def to_dict(self):
+        return asdict(self)
 
 @dataclass
 class SubtitleSegment:
@@ -93,8 +101,8 @@ class SubtitleSegment:
     start: float
     duration: float
 
-    def to_dict(self):
-        return {"text": self.text, "start": self.start, "duration": self.duration}
+    # def to_dict(self):
+    #     return {"text": self.text, "start": self.start, "duration": self.duration}
 
 
 @dataclass

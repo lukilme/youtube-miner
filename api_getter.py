@@ -18,6 +18,7 @@ from api_data_class import (
     YouTubeAuthError,
     YouTubeQuotaError,
     YouTubeAPIError,
+    CommentsDisabledError
 )
 import requests
 
@@ -734,7 +735,22 @@ class YouTubeClient:
         if resp.status_code == 401:
             raise YouTubeAuthError(f"Não autorizado (401): {body}")
         if resp.status_code == 403:
-            raise YouTubeQuotaError(f"Proibido/Cota (403): {body}")
+            error = resp.json()
+
+            message = (
+                error.get("error", {})
+                .get("message", "")
+                .lower()
+            )
+
+            if "disabled comments" in message:
+                raise CommentsDisabledError(message)
+
+            raise YouTubeAPIError(
+                f"Proibido/Cota (403): {resp.text}"
+            )
+
+        resp.raise_for_status()
         raise YouTubeAPIError(f"HTTP {resp.status_code}: {body}")
 
     @staticmethod

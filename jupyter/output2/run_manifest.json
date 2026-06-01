@@ -1,0 +1,50 @@
+{
+  "started_at": "2026-05-31T23:59:37.619392+00:00",
+  "finished_at": "2026-05-31T23:59:59.283532+00:00",
+  "region": "BR",
+  "total_videos": 84,
+  "total_unique_channels": 83,
+  "total_shorts_skipped": 0,
+  "by_macro": {
+    "Educação": {
+      "videos": 0,
+      "unique_channels": 0,
+      "shorts_skipped": 0
+    },
+    "Ciência e Tecnologia": {
+      "videos": 12,
+      "unique_channels": 12,
+      "shorts_skipped": 0
+    },
+    "Notícias e Política": {
+      "videos": 12,
+      "unique_channels": 12,
+      "shorts_skipped": 0
+    },
+    "Entretenimento": {
+      "videos": 12,
+      "unique_channels": 12,
+      "shorts_skipped": 0
+    },
+    "Música": {
+      "videos": 12,
+      "unique_channels": 11,
+      "shorts_skipped": 0
+    },
+    "Games": {
+      "videos": 12,
+      "unique_channels": 12,
+      "shorts_skipped": 0
+    },
+    "Esportes": {
+      "videos": 12,
+      "unique_channels": 12,
+      "shorts_skipped": 0
+    },
+    "Pessoas e Blogs / Howto Style": {
+      "videos": 12,
+      "unique_channels": 12,
+      "shorts_skipped": 0
+    }
+  }
+}
