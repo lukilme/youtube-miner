@@ -453,7 +453,7 @@ class YouTubeDashboard:
         ax8 = fig.add_subplot(gs[3, 1])
         if not self.scatter_sample.empty:
             src_labels = self.scatter_sample["source_label"].unique()
-            src_colors = dict(zip(src_labels, [palette["accent1"], palette["accent2"],
+            src_colors = dict(zip(src_labels, [palette["accent1"], palette["accent3"],
                                                palette["accent4"]][:len(src_labels)]))
             for src in src_labels:
                 s = self.scatter_sample[self.scatter_sample["source_label"] == src]
