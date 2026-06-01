@@ -209,8 +209,50 @@ class YouTubeDashboard:
         self._style_ax(ax, "Publicações por Mês")
         fig.tight_layout()
         return fig
-
+    
     def _plot_boxplot_views_categoria(self):
+        _CATEGORY_MAP = {
+            "filme": "1",
+            "filmes": "1",
+            "animacao": "1",
+            "automovel": "2",
+            "automoveis": "2",
+            "veiculo": "2",
+            "musica": "10",
+            "animal": "15",
+            "animais": "15",
+            "pet": "15",
+            "esporte": "17",
+            "esportes": "17",
+            "viagem": "19",
+            "viagens": "19",
+            "gaming": "20",
+            "jogos": "20",
+            "jogo": "20",
+            "game": "20",
+            "vlog": "22",
+            "pessoas": "22",
+            "comedia": "23",
+            "humor": "23",
+            "entretenimento": "24",
+            "noticias": "25",
+            "politica": "25",
+            "tutorial": "26",
+            "estilo": "26",
+            "beleza": "26",
+            "educacao": "27",
+            "Educação": "27",
+            "ciencia": "28",
+            "tecnologia": "28",
+            "tech": "28",
+            "ong": "29",
+        }
+        
+        _ID_TO_NAME = {}
+        for nome, id_str in _CATEGORY_MAP.items():
+            if id_str not in _ID_TO_NAME:
+                _ID_TO_NAME[id_str] = nome
+        
         fig, ax = plt.subplots(figsize=(10, 6), facecolor=self.PALETTE["bg"])
         if self.top_cats and "view_count" in self.df.columns:
             groups = []
@@ -224,11 +266,18 @@ class YouTubeDashboard:
                                 capprops={"color": self.PALETTE["muted"]},
                                 flierprops={"marker": "o", "color": self.PALETTE["accent3"], "alpha": 0.3, "markersize": 3})
                 box_colors = [self.PALETTE["accent2"], self.PALETTE["accent4"],
-                              self.PALETTE["accent3"], self.PALETTE["accent1"], self.PALETTE["muted"]]
+                            self.PALETTE["accent3"], self.PALETTE["accent1"], self.PALETTE["muted"]]
                 for patch, col in zip(bp["boxes"], box_colors):
                     patch.set_facecolor(col)
                     patch.set_alpha(0.7)
-                ax.set_xticklabels([f"cat {int(c)}" for c in self.top_cats], fontsize=8)
+                
+                labels = []
+                for c in self.top_cats:
+                    cat_id = str(int(c))
+                    nome = _ID_TO_NAME.get(cat_id, f"cat {cat_id}")
+                    labels.append(nome)
+                
+                ax.set_xticklabels(labels, fontsize=8)
                 ax.set_ylabel("log₁₀(view_count)")
         self._style_ax(ax, "Views por Categoria (Top 5)")
         fig.tight_layout()
