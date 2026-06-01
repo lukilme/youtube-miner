@@ -79,6 +79,7 @@ class YouTubeDashboard:
             self.eng_by_source = df.groupby("source_label")["engagement_rate"].median().sort_values()
         else:
             self.eng_by_source = pd.Series(dtype=float)
+        print(self.eng_by_source)
 
         if "year" in df.columns and "month" in df.columns:
             monthly = df.groupby(["year", "month"]).size().reset_index(name="count")
@@ -184,16 +185,19 @@ class YouTubeDashboard:
     def _plot_engajamento_por_fonte(self):
         fig, ax = plt.subplots(figsize=(10, 6), facecolor=self.PALETTE["bg"])
         if not self.eng_by_source.empty:
-            ax.barh(self.eng_by_source.index, self.eng_by_source.values * 100, color=self.PALETTE["accent4"], height=0.5)
+            ax.barh(self.eng_by_source.index, self.eng_by_source.values * 100, color=self.PALETTE["accent1"], height=0.5)
             ax.set_xlabel("Engagement Rate Mediano (%)")
             for i, val in enumerate(self.eng_by_source.values):
                 ax.text(val*100 + 0.002, i, f"{val*100:.2f}%", va="center", fontsize=8, color=self.PALETTE["text"])
+        else:
+            print("Catástrofe")
         self._style_ax(ax, "Engajamento por Fonte")
         fig.tight_layout()
         return fig
 
     def _plot_publicacoes_mes(self):
         fig, ax = plt.subplots(figsize=(10, 6), facecolor=self.PALETTE["bg"])
+        
         if not self.monthly.empty:
             monthly = self.monthly
             ax.fill_between(range(len(monthly)), monthly["count"], alpha=0.35, color=self.PALETTE["accent1"])
@@ -253,7 +257,8 @@ class YouTubeDashboard:
         if not self.scatter_sample.empty:
             src_labels = self.scatter_sample["source_label"].unique()
             src_colors = dict(zip(src_labels, [self.PALETTE["accent1"], self.PALETTE["accent2"],
-                                               self.PALETTE["accent4"]][:len(src_labels)]))
+                                               self.PALETTE["accent3"]][:len(src_labels)]))
+            print((src_labels))
             for src in src_labels:
                 s = self.scatter_sample[self.scatter_sample["source_label"] == src]
                 ax.scatter(np.log10(s["view_count"]+1), np.log10(s["like_count"]+1),
@@ -261,6 +266,7 @@ class YouTubeDashboard:
             ax.legend(fontsize=7, framealpha=0.2, markerscale=1.5)
         ax.set_xlabel("log₁₀(views)")
         ax.set_ylabel("log₁₀(likes)")
+        print()
         self._style_ax(ax, "Views x Likes por Fonte")
         fig.tight_layout()
         return fig
