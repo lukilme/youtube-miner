@@ -56,11 +56,21 @@ class YouTubeClient:
     _DEFAULT_SEARCH_URL = "https://www.googleapis.com/youtube/v3/search"
     _DEFAULT_CHANNELS_URL = "https://www.googleapis.com/youtube/v3/channels"
 
+    # _VIDEO_FIELDS = (
+    #     "nextPageToken,"
+    #     "items(id,"
+    #     "snippet(title,channelId,channelTitle,publishedAt,categoryId,"
+    #     "thumbnails(default(url))),"
+    #     "contentDetails(duration),"
+    #     "statistics(viewCount,likeCount,commentCount))"
+    # )
     _VIDEO_FIELDS = (
         "nextPageToken,"
         "items(id,"
-        "snippet(title,channelId,channelTitle,publishedAt,categoryId,"
+        "snippet(title,channelId,channelTitle,publishedAt,"
+        "categoryId,tags,"
         "thumbnails(default(url))),"
+        "contentDetails(duration),"
         "statistics(viewCount,likeCount,commentCount))"
     )
 
@@ -69,7 +79,6 @@ class YouTubeClient:
         "items(id,"
         "snippet(title,description,customUrl,publishedAt,country,"
         "thumbnails(default(url))),"
-        "contentDetails(duration),"
         "statistics(viewCount,subscriberCount,hiddenSubscriberCount,videoCount))"
     )
 
@@ -140,7 +149,7 @@ class YouTubeClient:
 
             params: Dict[str, Any] = {
                 "key": self._api_key,
-                "part": "snippet,statistics",
+                "part": "snippet,statistics,contentDetails",
                 "chart": "mostPopular",
                 "regionCode": region_code,
                 "maxResults": max_results,
