@@ -66,12 +66,33 @@ class YouTubeClient:
     # )
     _VIDEO_FIELDS = (
         "nextPageToken,"
-        "items(id,"
-        "snippet(title,channelId,channelTitle,publishedAt,"
-        "categoryId,tags,"
-        "thumbnails(default(url))),"
-        "contentDetails(duration),"
-        "statistics(viewCount,likeCount,commentCount))"
+        "items("
+            "id,"
+            "snippet("
+                "title,"
+                "description,"
+                "channelId,"
+                "channelTitle,"
+                "publishedAt,"
+                "categoryId,"
+                "tags,"
+                "thumbnails(default(url))"
+            "),"
+            "contentDetails("
+                "duration,"
+                "definition,"
+                "caption"
+            "),"
+            "statistics("
+                "viewCount,"
+                "likeCount,"
+                "commentCount,"
+                "favoriteCount"
+            "),"
+            "topicDetails("
+                "topicCategories"
+            ")"
+        ")"
     )
 
     _CHANNEL_FIELDS = (
@@ -149,7 +170,7 @@ class YouTubeClient:
 
             params: Dict[str, Any] = {
                 "key": self._api_key,
-                "part": "snippet,statistics,contentDetails",
+                "part": "snippet,statistics,contentDetails,topicDetails",
                 "chart": "mostPopular",
                 "regionCode": region_code,
                 "maxResults": max_results,
@@ -171,6 +192,7 @@ class YouTubeClient:
             videos = videos[:cap]
 
         logger.info("fetch_most_popular: %d vídeos retornados.", len(videos))
+        print(videos)
         return videos
 
     def fetch_comments(
@@ -762,13 +784,15 @@ class YouTubeClient:
 
         resp.raise_for_status()
         raise YouTubeAPIError(f"HTTP {resp.status_code}: {body}")
-
     @staticmethod
     def _parse_videos(data: Dict[str, Any]) -> List[Video]:
         videos: List[Video] = []
         for item in data.get("items", []):
             snippet = item.get("snippet", {})
             stats = item.get("statistics", {})
+            # 1. Captura o contentDetails que estava faltando
+            content_details = item.get("contentDetails", {})
+            
             videos.append(
                 Video(
                     video_id=item.get("id", ""),
@@ -780,6 +804,13 @@ class YouTubeClient:
                     thumbnail=snippet.get("thumbnails", {})
                     .get("default", {})
                     .get("url"),
+                    
+                    # 2. Adiciona as tags de forma segura (retorna lista vazia se não existirem)
+                    tags=snippet.get("tags", []),
+                    
+                    # 3. Adiciona a duração de forma segura (formato ISO 8601, ex: PT4M12S)
+                    duration=content_details.get("duration"),
+                    
                     view_count=(
                         int(stats["viewCount"]) if "viewCount" in stats else None
                     ),

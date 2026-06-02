@@ -54,6 +54,8 @@ class Video:
     view_count: Optional[int]
     like_count: Optional[int]
     comment_count: Optional[int]
+    tags: Optional[str]
+    duration: Optional[str]
 
     def to_dict(self):
         return asdict(self)
