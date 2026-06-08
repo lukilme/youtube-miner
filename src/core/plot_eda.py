@@ -4,11 +4,68 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib.gridspec as gridspec
+import matplotlib.ticker as mticker
+from matplotlib.gridspec import GridSpec
+import seaborn as sns
 import warnings
 import os
 
 warnings.filterwarnings("ignore")
 
+_CATEGORY_MAP = {
+            "filme": "1",
+            "filmes": "1",
+            "animacao": "1",
+            "automovel": "2",
+            "automoveis": "2",
+            "veiculo": "2",
+            "musica": "10",
+            "animal": "15",
+            "animais": "15",
+            "pet": "15",
+            "esporte": "17",
+            "esportes": "17",
+            "viagem": "19",
+            "viagens": "19",
+            "gaming": "20",
+            "jogos": "20",
+            "jogo": "20",
+            "game": "20",
+            "vlog": "22",
+            "pessoas": "22",
+            "comedia": "23",
+            "humor": "23",
+            "entretenimento": "24",
+            "noticias": "25",
+            "politica": "25",
+            "tutorial": "26",
+            "estilo": "26",
+            "beleza": "26",
+            "educacao": "27",
+            "Educação": "27",
+            "ciencia": "28",
+            "tecnologia": "28",
+            "tech": "28",
+            "ong": "29",
+        }
+
+CATEGORY_NAMES = {
+    "1": "Filmes e Animação",
+    "2": "Automóveis e Veículos",
+    "10": "Música",
+    "15": "Animais e Pets",
+    "17": "Esportes",
+    "19": "Viagens e Eventos",
+    "20": "Games",
+    "22": "Pessoas e Blogs",
+    "23": "Comédia",
+    "24": "Entretenimento",
+    "25": "Notícias e Política",
+    "26": "Como Fazer e Estilo",
+    "27": "Educação",
+    "28": "Ciência e Tecnologia",
+    "29": "ONGs e Ativismo",
+}
 
 class YouTubeDashboard:
     PALETTE = {
@@ -211,42 +268,6 @@ class YouTubeDashboard:
         return fig
     
     def _plot_boxplot_views_categoria(self):
-        _CATEGORY_MAP = {
-            "filme": "1",
-            "filmes": "1",
-            "animacao": "1",
-            "automovel": "2",
-            "automoveis": "2",
-            "veiculo": "2",
-            "musica": "10",
-            "animal": "15",
-            "animais": "15",
-            "pet": "15",
-            "esporte": "17",
-            "esportes": "17",
-            "viagem": "19",
-            "viagens": "19",
-            "gaming": "20",
-            "jogos": "20",
-            "jogo": "20",
-            "game": "20",
-            "vlog": "22",
-            "pessoas": "22",
-            "comedia": "23",
-            "humor": "23",
-            "entretenimento": "24",
-            "noticias": "25",
-            "politica": "25",
-            "tutorial": "26",
-            "estilo": "26",
-            "beleza": "26",
-            "educacao": "27",
-            "Educação": "27",
-            "ciencia": "28",
-            "tecnologia": "28",
-            "tech": "28",
-            "ong": "29",
-        }
         
         _ID_TO_NAME = {}
         for nome, id_str in _CATEGORY_MAP.items():
@@ -545,3 +566,601 @@ class YouTubeDashboard:
         plt.savefig(self.output_path, dpi=155, bbox_inches="tight", facecolor=palette["bg"])
         self.logger.info(f"Dashboard salvo em: {self.output_path}")
         return fig
+    
+    
+
+
+warnings.filterwarnings("ignore")
+
+PALETTE = {
+    "bg":      "#0D0F1A",
+    "panel":   "#141726",
+    "accent1": "#FF4D6D",
+    "accent2": "#4CC9F0",
+    "accent3": "#F4A261",
+    "accent4": "#2EC4B6",
+    "text":    "#E8EAF0",
+    "muted":   "#6C7293",
+}
+
+ACCENT_LIST = [
+    PALETTE["accent2"],
+    PALETTE["accent1"],
+    PALETTE["accent3"],
+    PALETTE["accent4"],
+]
+
+
+def _apply_base_style(fig, axes=None):
+    """Aplica estilo escuro padrão a uma figura e lista de Axes."""
+    fig.patch.set_facecolor(PALETTE["bg"])
+    if axes is None:
+        return
+    for ax in (axes if hasattr(axes, "__iter__") else [axes]):
+        ax.set_facecolor(PALETTE["panel"])
+        ax.tick_params(colors=PALETTE["muted"], labelsize=9)
+        ax.xaxis.label.set_color(PALETTE["text"])
+        ax.yaxis.label.set_color(PALETTE["text"])
+        ax.title.set_color(PALETTE["text"])
+        for spine in ax.spines.values():
+            spine.set_edgecolor(PALETTE["muted"])
+            spine.set_linewidth(0.5)
+
+
+def _fmt_millions(x, _):
+    if x >= 1_000_000:
+        return f"{x/1_000_000:.1f}M"
+    if x >= 1_000:
+        return f"{x/1_000:.0f}K"
+    return f"{x:.0f}"
+
+
+def _save_or_show(fig, filename=None, show=True):
+    plt.tight_layout()
+    if filename:
+        fig.savefig(filename, dpi=150, bbox_inches="tight",
+                    facecolor=PALETTE["bg"])
+        print(f"Salvo em: {filename}")
+    if show:
+        plt.show()
+        
+    plt.close(fig)
+
+
+def plot_boxplots(df: pd.DataFrame, filename: str = None):
+    """
+    Boxplots lado a lado das métricas numéricas principais.
+    Usa escala logarítmica para view_count, like_count e comment_count.
+    """
+    cols = {
+        "view_count":      ("Visualizações", True),
+        "like_count":      ("Likes", True),
+        "comment_count":   ("Comentários", True),
+        "engagement_rate": ("Eng. Rate", False),
+        "duration_seconds":("Duração (s)", True),
+        "tags_n":          ("# Tags", False),
+        "title_len":       ("Len. Título", False),
+    }
+
+    fig, axes = plt.subplots(1, len(cols), figsize=(18, 6))
+    _apply_base_style(fig, axes)
+
+    for ax, ((col, (label, log_scale)), color) in zip(
+        axes, zip(cols.items(), ACCENT_LIST * 4)
+    ):
+        data = df[col].dropna()
+        bp = ax.boxplot(
+            data,
+            vert=True,
+            patch_artist=True,
+            widths=0.5,
+            medianprops=dict(color=PALETTE["accent1"], linewidth=2.5),
+            whiskerprops=dict(color=PALETTE["muted"], linewidth=1.2),
+            capprops=dict(color=PALETTE["muted"], linewidth=1.2),
+            flierprops=dict(
+                marker="o", color=color, alpha=0.4,
+                markersize=3, linestyle="none"
+            ),
+        )
+        bp["boxes"][0].set_facecolor(color)
+        bp["boxes"][0].set_alpha(0.75)
+
+        ax.set_title(label, fontsize=10, fontweight="bold", pad=8)
+        ax.set_xticks([])
+        if log_scale:
+            ax.set_yscale("log")
+            ax.yaxis.set_major_formatter(mticker.FuncFormatter(_fmt_millions))
+
+    fig.suptitle("Boxplots – Métricas do Dataset YouTube",
+                 color=PALETTE["text"], fontsize=14, fontweight="bold", y=1.02)
+    _save_or_show(fig, filename)
+_CATEGORY_MAP = {
+            "filme": "1",
+            "filmes": "1",
+            "animacao": "1",
+            "automovel": "2",
+            "automoveis": "2",
+            "veiculo": "2",
+            "musica": "10",
+            "animal": "15",
+            "animais": "15",
+            "pet": "15",
+            "esporte": "17",
+            "esportes": "17",
+            "viagem": "19",
+            "viagens": "19",
+            "gaming": "20",
+            "jogos": "20",
+            "jogo": "20",
+            "game": "20",
+            "vlog": "22",
+            "pessoas": "22",
+            "comedia": "23",
+            "humor": "23",
+            "entretenimento": "24",
+            "noticias": "25",
+            "politica": "25",
+            "tutorial": "26",
+            "estilo": "26",
+            "beleza": "26",
+            "educacao": "27",
+            "Educação": "27",
+            "ciencia": "28",
+            "tecnologia": "28",
+            "tech": "28",
+            "ong": "29",
+        }
+
+def plot_histograms(df: pd.DataFrame, filename: str = None):
+    """
+    Grade 3x3 de histogramas para as principais variáveis numéricas.
+    """
+    cols = [
+        ("log_view_count",       "log(Visualizações)"),
+        ("log_like_count",       "log(Likes)"),
+        ("log_comment_count",    "log(Comentários)"),
+        ("engagement_rate",      "Engagement Rate"),
+        ("likes_per_view",       "Likes / View"),
+        ("comments_per_view",    "Comentários / View"),
+        ("duration_seconds",     "Duração (s)"),
+        ("tags_n",               "# Tags"),
+        ("title_len",            "Len. Título (chars)"),
+    ]
+
+    fig, axes = plt.subplots(3, 3, figsize=(14, 12))
+    _apply_base_style(fig, axes.flat)
+
+    for ax, (col, label), color in zip(axes.flat, cols, ACCENT_LIST * 3):
+        data = df[col].dropna()
+        ax.hist(data, bins=35, color=color, alpha=0.80, edgecolor="none")
+        ax.axvline(data.median(), color=PALETTE["accent1"],
+                   linewidth=1.8, linestyle="--", label="Mediana")
+        ax.set_title(label, fontsize=9, fontweight="bold")
+        ax.set_ylabel("Freq.", fontsize=8)
+        ax.yaxis.set_major_formatter(
+            mticker.FuncFormatter(lambda x, _: f"{int(x)}"))
+
+    fig.suptitle("Histogramas – Distribuição das Variáveis",
+                 color=PALETTE["text"], fontsize=14, fontweight="bold", y=1.01)
+    _save_or_show(fig, filename)
+
+def plot_category_pie(df: pd.DataFrame, filename: str = None):
+    """
+    Gráfico de pizza (donut) com a distribuição de vídeos por categoria.
+    Categorias com menos de 10% são agrupadas em 'Outros'.
+    """
+    counts = df["category_id"].astype(str).value_counts()
+
+    total = counts.sum()
+    percentages = counts / total * 100
+
+    major = counts[percentages >= 10]
+    minor = counts[percentages < 10]
+
+    if not minor.empty:
+        major["Outros"] = minor.sum()
+
+    labels = [
+        CATEGORY_NAMES.get(cat, f"Categoria {cat}")
+        if cat != "Outros"
+        else "Outros"
+        for cat in major.index
+    ]
+
+    sizes = major.values
+
+    colors = [
+        ACCENT_LIST[i % len(ACCENT_LIST)]
+        if i < 4
+        else PALETTE["muted"]
+        for i in range(len(sizes))
+    ]
+
+    fig, ax = plt.subplots(figsize=(9, 9))
+    _apply_base_style(fig, ax)
+    ax.set_facecolor(PALETTE["bg"])
+
+    wedges, texts, autotexts = ax.pie(
+        sizes,
+        labels=None,
+        autopct=lambda p: f"{p:.1f}%" if p > 3 else "",
+        startangle=140,
+        colors=colors,
+        pctdistance=0.78,
+        wedgeprops=dict(
+            width=0.55,
+            edgecolor=PALETTE["bg"],
+            linewidth=2,
+        ),
+    )
+
+    for at in autotexts:
+        at.set_color(PALETTE["bg"])
+        at.set_fontsize(9)
+        at.set_fontweight("bold")
+
+    ax.legend(
+        wedges,
+        labels,
+        loc="center left",
+        bbox_to_anchor=(1.02, 0.5),
+        fontsize=9,
+        frameon=False,
+        labelcolor=PALETTE["text"],
+    )
+
+    centre = plt.Circle((0, 0), 0.45, color=PALETTE["bg"])
+    ax.add_patch(centre)
+
+    ax.text(
+        0,
+        0,
+        f"{len(df)}\nvídeos",
+        ha="center",
+        va="center",
+        fontsize=14,
+        fontweight="bold",
+        color=PALETTE["text"],
+    )
+
+    ax.set_title(
+        "Distribuição por Categoria",
+        color=PALETTE["text"],
+        fontsize=14,
+        fontweight="bold",
+        pad=20,
+    )
+
+    _save_or_show(fig, filename)
+    
+def plot_views_by_category(df: pd.DataFrame, filename: str = None):
+    """
+    Barras horizontais com view_count médio e mediano por categoria.
+    """
+    grouped = (
+        df.groupby("category_id")["view_count"]
+        .agg(["mean", "median"])
+        .sort_values("mean", ascending=True)
+    )
+
+    fig, ax = plt.subplots(figsize=(12, 7))
+    _apply_base_style(fig, ax)
+
+    y = np.arange(len(grouped))
+    h = 0.38
+
+    mean_bars = ax.barh(
+        y + h / 2,
+        grouped["mean"],
+        height=h,
+        color=PALETTE["accent2"],
+        alpha=0.85,
+        label="Média",
+    )
+
+    median_bars = ax.barh(
+        y - h / 2,
+        grouped["median"],
+        height=h,
+        color=PALETTE["accent3"],
+        alpha=0.85,
+        label="Mediana",
+    )
+
+    labels = [
+        CATEGORY_NAMES.get(str(cat), f"Categoria {cat}")
+        for cat in grouped.index
+    ]
+
+    ax.set_yticks(y)
+    ax.set_yticklabels(
+        labels,
+        color=PALETTE["text"],
+        fontsize=9,
+    )
+
+    ax.xaxis.set_major_formatter(
+        mticker.FuncFormatter(_fmt_millions)
+    )
+
+    ax.set_xlabel("Visualizações")
+    ax.set_title(
+        "Views Médias e Medianas por Categoria",
+        fontsize=13,
+        fontweight="bold",
+    )
+
+    ax.legend(
+        frameon=False,
+        labelcolor=PALETTE["text"],
+        fontsize=9,
+    )
+
+    ax.grid(
+        axis="x",
+        color=PALETTE["muted"],
+        alpha=0.2,
+        linewidth=0.6,
+    )
+
+    max_val = grouped[["mean", "median"]].to_numpy().max()
+    offset = max_val * 0.01
+
+    for bar in mean_bars:
+        value = bar.get_width()
+        ax.text(
+            value + offset,
+            bar.get_y() + bar.get_height() / 2,
+            _fmt_millions(value, None),
+            va="center",
+            ha="left",
+            color="white",
+            fontsize=8,
+            fontweight="bold",
+        )
+
+    for bar in median_bars:
+        value = bar.get_width()
+        ax.text(
+            value + offset,
+            bar.get_y() + bar.get_height() / 2,
+            _fmt_millions(value, None),
+            va="center",
+            ha="left",
+            color="white",
+            fontsize=8,
+            fontweight="bold",
+        )
+
+    _save_or_show(fig, filename)
+
+def plot_scatter_views_likes(df: pd.DataFrame, filename: str = None):
+    """
+    Scatter plot log(views) vs log(likes) colorido por engagement_rate.
+    """
+    data = df.dropna(subset=["log_view_count", "log_like_count",
+                              "engagement_rate"])
+
+    fig, ax = plt.subplots(figsize=(10, 7))
+    _apply_base_style(fig, ax)
+
+    sc = ax.scatter(
+        data["log_view_count"], data["log_like_count"],
+        c=data["engagement_rate"],
+        cmap="plasma", alpha=0.65, s=20, linewidths=0,
+    )
+
+    cbar = fig.colorbar(sc, ax=ax, pad=0.02)
+    cbar.set_label("Engagement Rate", color=PALETTE["text"], fontsize=9)
+    cbar.ax.yaxis.set_tick_params(color=PALETTE["muted"])
+    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=PALETTE["muted"])
+
+    m, b = np.polyfit(data["log_view_count"], data["log_like_count"], 1)
+    x_line = np.linspace(data["log_view_count"].min(),
+                         data["log_view_count"].max(), 200)
+    ax.plot(x_line, m * x_line + b,
+            color=PALETTE["accent1"], linewidth=2, linestyle="--",
+            label=f"Tendência (r²={np.corrcoef(data['log_view_count'], data['log_like_count'])[0,1]**2:.2f})")
+
+    ax.set_xlabel("log(Visualizações)")
+    ax.set_ylabel("log(Likes)")
+    ax.set_title("Views x Likes — Escala Logarítmica",
+                 fontsize=13, fontweight="bold")
+    ax.legend(frameon=False, labelcolor=PALETTE["text"], fontsize=9)
+    ax.grid(color=PALETTE["muted"], alpha=0.15, linewidth=0.5)
+
+    _save_or_show(fig, filename)
+
+
+def plot_correlation_heatmap(df: pd.DataFrame, filename: str = None):
+    """
+    Heatmap de correlação de Pearson entre variáveis numéricas.
+    """
+    num_cols = [
+        "log_view_count", "log_like_count", "log_comment_count",
+        "engagement_rate", "likes_per_view", "comments_per_view",
+        "log_duration_seconds", "tags_n", "title_len", "published_hour",
+    ]
+    corr = df[num_cols].corr()
+
+    fig, ax = plt.subplots(figsize=(12, 10))
+    _apply_base_style(fig, ax)
+
+    cmap = sns.diverging_palette(340, 190, s=90, l=40, as_cmap=True)
+    sns.heatmap(
+        corr, ax=ax, cmap=cmap, center=0,
+        annot=True, fmt=".2f", annot_kws={"size": 8, "color": "black"},
+        linewidths=0.5, linecolor=PALETTE["bg"],
+        cbar_kws={"shrink": 0.8},
+    )
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=40,
+                       ha="right", color=PALETTE["text"], fontsize=8)
+    ax.set_yticklabels(ax.get_yticklabels(), rotation=0,
+                       color=PALETTE["text"], fontsize=8)
+    ax.set_title("Mapa de Correlação – Variáveis Numéricas",
+                 fontsize=13, fontweight="bold", pad=14)
+
+    cbar = ax.collections[0].colorbar
+    cbar.ax.yaxis.set_tick_params(color=PALETTE["muted"])
+    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=PALETTE["muted"])
+
+    _save_or_show(fig, filename)
+
+def plot_publish_hour(df: pd.DataFrame, filename: str = None):
+    """
+    Barras verticais mostrando a distribuição de vídeos por hora de publicação.
+    """
+    hour_counts = df["published_hour"].value_counts().sort_index()
+    hours = hour_counts.index
+    counts = hour_counts.values
+
+    fig, ax = plt.subplots(figsize=(13, 5))
+    _apply_base_style(fig, ax)
+
+    bars = ax.bar(hours, counts, color=PALETTE["accent2"],
+                  alpha=0.80, width=0.75, edgecolor="none")
+
+    peak_h = hour_counts.idxmax()
+    bars[peak_h].set_color(PALETTE["accent1"])
+    bars[peak_h].set_alpha(1.0)
+
+    ax.set_xlabel("Hora de Publicação (UTC)")
+    ax.set_ylabel("Quantidade de Vídeos")
+    ax.set_title("Distribuição de Publicações por Hora do Dia",
+                 fontsize=13, fontweight="bold")
+    ax.set_xticks(range(0, 24))
+    ax.grid(axis="y", color=PALETTE["muted"], alpha=0.2, linewidth=0.6)
+
+    peak_patch = mpatches.Patch(color=PALETTE["accent1"],
+                                label=f"Pico: {peak_h}h ({hour_counts[peak_h]} vídeos)")
+    ax.legend(handles=[peak_patch], frameon=False,
+              labelcolor=PALETTE["text"], fontsize=9)
+
+    _save_or_show(fig, filename)
+
+def plot_engagement_violin(df: pd.DataFrame, filename: str = None):
+    """
+    Violin plots do engagement_rate por category_id.
+    """
+    cats = sorted(df["category_id"].dropna().unique())
+    data_by_cat = [df.loc[df["category_id"] == c, "engagement_rate"].dropna()
+                   for c in cats]
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+    _apply_base_style(fig, ax)
+
+    parts = ax.violinplot(data_by_cat, positions=range(len(cats)),
+                          showmedians=True, showextrema=False)
+    labels = [
+        CATEGORY_NAMES.get(str(cat), f"Categoria {cat}")
+        for cat in cats
+    ]
+    for i, (pc, color) in enumerate(
+        zip(parts["bodies"], ACCENT_LIST * (len(cats) // 4 + 1))
+    ):
+        pc.set_facecolor(color)
+        pc.set_alpha(0.65)
+        pc.set_edgecolor(PALETTE["bg"])
+
+    parts["cmedians"].set_edgecolor(PALETTE["accent1"])
+    parts["cmedians"].set_linewidth(2)
+
+    ax.set_xticks(range(len(cats)))
+    ax.set_xticklabels(
+        labels,
+        rotation=20,
+        ha="right",
+        color=PALETTE["text"],
+        fontsize=9,
+    )
+    ax.set_facecolor("#eceff2") 
+    ax.set_ylabel("Engagement Rate")
+    ax.set_title("Engagement Rate por Categoria",
+                 fontsize=13, fontweight="bold")
+    ax.grid(axis="y", color=PALETTE["muted"], alpha=0.2, linewidth=0.6)
+
+    _save_or_show(fig, filename)
+
+def plot_dashboard(df: pd.DataFrame, filename: str = None):
+    """
+    Dashboard compacto com 6 gráficos em um único painel.
+    """
+    fig = plt.figure(figsize=(18, 12))
+    fig.patch.set_facecolor(PALETTE["bg"])
+    gs = GridSpec(3, 3, figure=fig, hspace=0.5, wspace=0.4)
+
+    axes = [
+        fig.add_subplot(gs[0, 0]),
+        fig.add_subplot(gs[0, 1]),
+        fig.add_subplot(gs[0, 2]),
+        fig.add_subplot(gs[1, :2]),
+        fig.add_subplot(gs[1, 2]),
+        fig.add_subplot(gs[2, :]),
+    ]
+    _apply_base_style(fig, axes)
+
+    ax = axes[0]
+    data = df["log_view_count"].dropna()
+    ax.hist(data, bins=30, color=PALETTE["accent2"], alpha=0.8, edgecolor="none")
+    ax.axvline(data.median(), color=PALETTE["accent1"],
+               linewidth=1.8, linestyle="--")
+    ax.set_title("Dist. log(Views)", fontsize=10, fontweight="bold")
+
+    ax = axes[1]
+    data = df["engagement_rate"].dropna()
+    ax.hist(data, bins=30, color=PALETTE["accent3"], alpha=0.8, edgecolor="none")
+    ax.axvline(data.median(), color=PALETTE["accent1"],
+               linewidth=1.8, linestyle="--")
+    ax.set_title("Dist. Engagement Rate", fontsize=10, fontweight="bold")
+
+    ax = axes[2]
+    data = df["duration_seconds"].dropna()
+    ax.hist(np.log1p(data), bins=30, color=PALETTE["accent4"],
+            alpha=0.8, edgecolor="none")
+    ax.axvline(np.log1p(data.median()), color=PALETTE["accent1"],
+               linewidth=1.8, linestyle="--")
+    ax.set_title("Dist. log(Duração)", fontsize=10, fontweight="bold")
+
+    ax = axes[3]
+    d = df.dropna(subset=["log_view_count", "log_like_count", "engagement_rate"])
+    sc = ax.scatter(d["log_view_count"], d["log_like_count"],
+                    c=d["engagement_rate"], cmap="plasma",
+                    alpha=0.55, s=12, linewidths=0)
+    m, b = np.polyfit(d["log_view_count"], d["log_like_count"], 1)
+    x_ = np.linspace(d["log_view_count"].min(), d["log_view_count"].max(), 100)
+    ax.plot(x_, m * x_ + b, color=PALETTE["accent1"],
+            linewidth=1.8, linestyle="--")
+    ax.set_xlabel("log(Views)")
+    ax.set_ylabel("log(Likes)")
+    ax.set_title("Views x Likes", fontsize=10, fontweight="bold")
+    ax.grid(color=PALETTE["muted"], alpha=0.12, linewidth=0.4)
+
+    ax = axes[4]
+    ax.set_facecolor(PALETTE["bg"])
+    counts = df["category_id"].value_counts()
+    wedges, _, _ = ax.pie(
+        counts.values,
+        autopct=lambda p: f"{p:.0f}%" if p > 5 else "",
+        startangle=90,
+        colors=ACCENT_LIST * (len(counts) // 4 + 1),
+        wedgeprops=dict(width=0.55, edgecolor=PALETTE["bg"], linewidth=1.5),
+        pctdistance=0.75,
+    )
+    ax.set_title("Categorias", fontsize=10, fontweight="bold")
+
+    ax = axes[5]
+    hc = df["published_hour"].value_counts().sort_index()
+    bar_colors = [PALETTE["accent1"] if h == hc.idxmax()
+                  else PALETTE["accent2"] for h in hc.index]
+    ax.bar(hc.index, hc.values, color=bar_colors, alpha=0.82, width=0.75)
+    ax.set_xlabel("Hora (UTC)")
+    ax.set_ylabel("Qtd. Vídeos")
+    ax.set_title("Publicações por Hora", fontsize=10, fontweight="bold")
+    ax.set_xticks(range(0, 24))
+    ax.grid(axis="y", color=PALETTE["muted"], alpha=0.15, linewidth=0.5)
+
+    fig.suptitle("YouTube Dataset — Dashboard de Análise",
+                 color=PALETTE["text"], fontsize=16,
+                 fontweight="bold", y=1.01)
+
+    _save_or_show(fig, filename)
