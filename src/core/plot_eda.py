@@ -71,10 +71,20 @@ class YouTubeDashboard:
     PALETTE = {
         "bg":      "#0D0F1A",
         "panel":   "#141726",
+
         "accent1": "#FF4D6D",
         "accent2": "#4CC9F0",
         "accent3": "#F4A261",
         "accent4": "#2EC4B6",
+        "accent5": "#9B5DE5",
+        "accent6": "#FDD167",
+        "accent7": "#06D6A0",
+        "accent8": "#EF476F",
+        "accent9": "#118AB2",
+        "accent10": "#FF9F1C", 
+        "accent11": "#7B2CBF",
+        "accent12": "#80ED99",
+
         "text":    "#E8EAF0",
         "muted":   "#6C7293",
     }
@@ -750,12 +760,12 @@ def plot_category_pie(df: pd.DataFrame, filename: str = None):
     Categorias com menos de 10% são agrupadas em 'Outros'.
     """
     counts = df["category_id"].astype(str).value_counts()
-
+    print(counts)
     total = counts.sum()
     percentages = counts / total * 100
-
-    major = counts[percentages >= 10]
-    minor = counts[percentages < 10]
+    print(percentages)
+    major = counts[percentages >= 5]
+    minor = counts[percentages < 5]
 
     if not minor.empty:
         major["Outros"] = minor.sum()
@@ -771,7 +781,7 @@ def plot_category_pie(df: pd.DataFrame, filename: str = None):
 
     colors = [
         ACCENT_LIST[i % len(ACCENT_LIST)]
-        if i < 4
+        if i < 5
         else PALETTE["muted"]
         for i in range(len(sizes))
     ]
@@ -1019,7 +1029,10 @@ def plot_publish_hour(df: pd.DataFrame, filename: str = None):
 
     bars = ax.bar(hours, counts, color=PALETTE["accent2"],
                   alpha=0.80, width=0.75, edgecolor="none")
+    peak_pos = hour_counts.values.argmax()
 
+    bars[peak_pos].set_color(PALETTE["accent1"])
+    bars[peak_pos].set_alpha(1.0)
     peak_h = hour_counts.idxmax()
     bars[peak_h].set_color(PALETTE["accent1"])
     bars[peak_h].set_alpha(1.0)
