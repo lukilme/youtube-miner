@@ -625,12 +625,17 @@ def _fmt_millions(x, _):
     return f"{x:.0f}"
 
 
-def _save_or_show(fig, filename=None, show=True):
+def _save_or_show(fig, filename=None, show=True, figsize=(10, 6)):
+    fig.set_size_inches(figsize)
+    
+    # 2. Ajusta o layout para não cortar textos/eixos
     plt.tight_layout()
+    
     if filename:
         fig.savefig(filename, dpi=150, bbox_inches="tight",
                     facecolor=PALETTE["bg"])
         print(f"Salvo em: {filename}")
+        
     if show:
         plt.show()
         
@@ -760,10 +765,9 @@ def plot_category_pie(df: pd.DataFrame, filename: str = None):
     Categorias com menos de 10% são agrupadas em 'Outros'.
     """
     counts = df["category_id"].astype(str).value_counts()
-    print(counts)
+
     total = counts.sum()
     percentages = counts / total * 100
-    print(percentages)
     major = counts[percentages >= 5]
     minor = counts[percentages < 5]
 
