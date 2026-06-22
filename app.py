@@ -1,7 +1,6 @@
 import streamlit as st
-from src.core.registry import PAGES
 from streamlit_option_menu import option_menu
-import src.core.config as config
+import src.core.setting as config
 
 config.conf_browser_setting(st)
 config.conf_global_style(st)
@@ -14,8 +13,8 @@ def render():
     with st.sidebar:
         selected = option_menu(
             menu_title="Menu",
-            options=[page.name for page in PAGES],
-            icons=[page.icon for page in PAGES],
+            options=[page.name for page in config.PAGES],
+            icons=[page.icon for page in config.PAGES],
             menu_icon="grid-fill",
             default_index=0,
             orientation="vertical",
@@ -48,7 +47,7 @@ def render():
             },
         )
 
-    selected_page = next(page for page in PAGES if page.name == selected)
+    selected_page = next(page for page in config.PAGES if page.name == selected)
 
     selected_page.render(st)
 
