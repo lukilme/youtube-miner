@@ -1,8 +1,9 @@
 import time
 import requests
 from typing import Dict, Any
-from src.core.models.api_data_classes import RateLimitConfig, YouTubeAuthError, YouTubeAPIError, CommentsDisabledError
 import logging
+
+from src.core.models.api_data_classes import RateLimitConfig, YouTubeAuthError, YouTubeAPIError, CommentsDisabledError
 from src.core.setting.logger import setup_logger
 logger: logging.Logger = setup_logger("youtube_requester")
 
@@ -49,7 +50,7 @@ class YouTubeAPIRequester:
 
     def get(self, url: str, params: Dict[str, Any]) -> Dict[str, Any]:
         """Executa requisição GET com retry e tratamento de erros."""
-        params = {**params, "key": self._api_key}  # garante que a chave esteja presente
+        params = {**params, "key": self._api_key} 
         last_exc: Exception = RuntimeError("No attempts made.")
 
         for attempt in range(1, self.retries + 1):

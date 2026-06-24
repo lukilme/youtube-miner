@@ -1,13 +1,14 @@
 import logging
 from src.core.setting.logger import setup_logger
 from typing import List, Dict, Any, Optional
-from src.core.models.api_data_classes import Comment, Video, Subtitle, Channel, LimitsConfig, SubtitleSegment
-from src.core.service.youtube_requester import YouTubeAPIRequester, YouTubeAPIError
-from src.core.service.youtube_parser import YouTubeDataParser
-from src.core.pipeline import YouTubePipeline
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFound
+
+from src.core.models.api_data_classes import Comment, Video, Subtitle, Channel, LimitsConfig, SubtitleSegment
+from src.core.service.youtube_requester import YouTubeAPIRequester, YouTubeAPIError
+from src.core.pipeline import YouTubePipeline
 from src.core.setting.registry import CATEGORY_MAP, VIDEO_FIELDS, CHANNEL_FIELDS, PAGE_SIZE
+from src.core.service.youtube_parser import YouTubeDataParser
 
 try:
     from youtube_transcript_api import (
