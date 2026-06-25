@@ -81,29 +81,34 @@ def render(st):
 
     st.subheader("Visuais centrais da proposta")
 
-    img_col1, img_col2 = st.columns(2)
+    col1, col2, col3 = st.columns([1, 4, 1])
 
-    with img_col1:
-        st.markdown("**Diagrama da dinâmica entre canais, vídeos e comentários**")
+    with col2:
+        st.markdown("<div style='text-align: center; font-weight: bold;'>Diagrama da dinâmica entre canais, vídeos e comentários</div>", unsafe_allow_html=True)
+        
         diagrama_path = ASSETS_DIR / "diagrama.png"
         if diagrama_path.exists():
             st.image(str(diagrama_path), use_container_width=True)
         else:
             st.error("Imagem não encontrada: assets/diagrama.png")
+            
+        st.markdown("<div style='text-align: center; color: gray; font-size: 0.85rem;'>Mostra a relação circular entre canal, vídeo e comentários.</div>", unsafe_allow_html=True)
 
-        st.caption("Mostra a relação circular entre canal, vídeo e comentários.")
 
-    with img_col2:
-        st.markdown("**Thumbs e nuvens de palavras baseadas nos comentários**")
+    st.divider()
+    
+    col4, col5, col6 = st.columns([1, 4, 1])
+
+    with col5:
+        st.markdown("<div style='text-align: center; font-weight: bold;'>Thumbs e nuvens de palavras baseadas nos comentários</div>", unsafe_allow_html=True)
+        
         cloud_path = ASSETS_DIR / "cloud_words.png"
         if cloud_path.exists():
             st.image(str(cloud_path), use_container_width=True)
         else:
             st.error("Imagem não encontrada: assets/cloud_words.png")
-
-        st.caption(
-            "Evidencia como temas distintos aparecem na reação textual da audiência."
-        )
+            
+        st.markdown("<div style='text-align: center; color: gray; font-size: 0.85rem;'>Evidencia como temas distintos aparecem na reação textual da audiência.</div>", unsafe_allow_html=True)
 
     st.divider()
 
