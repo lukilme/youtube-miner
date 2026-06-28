@@ -5,7 +5,7 @@ from datetime import datetime
 from src.core.setting import setup_logger
 import logging
 
-logger: logging.Logger = setup_logger("pipeline_stats", logging.DEBUG)
+logger: logging.Logger = setup_logger("pipeline_stats")
 
 
 @dataclass

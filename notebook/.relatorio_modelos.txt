@@ -1,0 +1,10 @@
+============================================================
+RELATÓRIO DE REGRESSÃO - PREVISÃO DE PERFORMANCE DE VÍDEOS
+============================================================
+
+                              RMSE (log)  MAE (log)  R² (log)  RMSE (original)  MAE (original)  R² (original)      MAPE
+TF-IDF + SVM (Linear)           1.403129   1.033914 -0.061563      9723.241412     6641.168629       0.009882  4.368707
+TF-IDF + Logistic Regression    1.361317   1.036799  0.000761     10124.605501     6652.521559      -0.073547  3.462732
+TF-IDF + Random Forest          1.357153   1.039418  0.006865     10200.934190     6628.360619      -0.089795  3.716567
+
+Melhor modelo geral: TF-IDF + SVM (Linear)

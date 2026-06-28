@@ -1,11 +1,12 @@
 from src.core.models.page import Page
 from typing import Dict
-from src.views import intro_render, scrapper_render, sql_render
+from src.views import intro_render, scrapper_render, sql_render,request_render
 
 PAGES: list[Page] = [
     Page(name="Introdução", icon="house-fill", render=intro_render),
     Page(name="Scrapper", icon="search", render=scrapper_render),
     Page(name="SQL View", icon="table", render=sql_render),
+    Page(name="Request API", icon="cloud-arrow-up", render=request_render)
 ]
 
 VIDEO_FIELDS = (

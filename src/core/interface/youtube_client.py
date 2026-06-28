@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
-from src.core.models.api_data_classes import (
+from src.core.models import (
     Comment,
     Video,
     Subtitle,

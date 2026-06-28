@@ -1,4 +1,4 @@
-from src.core.api import YouTubeClient
+from src.core.interface.youtube_client import IYouTubeClient
 from src.core.models.pipeline_data_classes import PipelineConfig, PipelineStats
 from src.core.models.api_data_classes import Subtitle
 from typing import List, Dict, Optional, Set, Any
@@ -17,8 +17,8 @@ class YouTubePipeline:
     Pipeline otimizada para extração de dados do YouTube.
     """
 
-    def __init__(self, client, config: PipelineConfig):
-        self.client: YouTubeClient = client
+    def __init__(self, client: IYouTubeClient, config: PipelineConfig):
+        self.client = client
         self.config = config
         self.stats = PipelineStats()
 

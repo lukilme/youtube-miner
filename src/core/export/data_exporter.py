@@ -1,3 +1,4 @@
+from dataclasses import field
 from pathlib import Path
 from typing import List, Dict, Any
 import csv
@@ -10,6 +11,8 @@ logger: logging.Logger = setup_logger("builder")
 
 
 class DataExporter:
+    checkpoint_dir: Path = field(default_factory=lambda: Path("checkpoints"))
+
     @staticmethod
     def to_csv(rows: List[Dict[str, Any]], filepath: str) -> None:
         if not rows:

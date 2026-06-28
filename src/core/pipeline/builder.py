@@ -1,7 +1,8 @@
 from __future__ import annotations
 from typing import Optional, Self
 from pathlib import Path
-from src.core.pipeline import PipelineConfig, YouTubePipeline
+from src.core.pipeline.pipeline import YouTubePipeline
+from src.core.models.pipeline_data_classes import PipelineConfig
 import logging
 
 from src.core.setting.logger import setup_logger

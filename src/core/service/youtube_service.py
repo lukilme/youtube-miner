@@ -155,7 +155,57 @@ class YouTubeDataService:
             video_category_id=category_id,
             max_items=max_items,
         )
+    def fetch_videos_by_channel_id(
+        self,
+        channel_id: str,
+        videos_per_channel: int = 15,
+    ) -> List[Video]:
+        """
+        Busca vídeos de um canal usando diretamente seu channel_id.
+        Utiliza a playlist de uploads (UU + ID sem os dois primeiros caracteres).
+        """
+        if not channel_id:
+            logger.warning("fetch_videos_by_channel_id: channel_id vazio.")
+            return []
 
+        # Playlist de uploads: "UU" + channel_id[2:] (padrão do YouTube)
+        uploads_playlist_id = "UU" + channel_id[2:]
+
+        # 1. Obter IDs dos vídeos da playlist de uploads
+        playlist_params: Dict[str, Any] = {
+            "key": self._api_key,
+            "part": "contentDetails",
+            "playlistId": uploads_playlist_id,
+            "maxResults": videos_per_channel,
+        }
+        playlist_data = self._get(
+            "https://www.googleapis.com/youtube/v3/playlistItems",
+            playlist_params
+        )
+        video_ids: List[str] = [
+            item["contentDetails"]["videoId"]
+            for item in playlist_data.get("items", [])
+            if item.get("contentDetails", {}).get("videoId")
+        ]
+
+        if not video_ids:
+            logger.info("Nenhum vídeo encontrado para o canal: %s", channel_id)
+            return []
+
+        videos: List[Video] = []
+        for chunk_start in range(0, len(video_ids), 50):
+            chunk = video_ids[chunk_start : chunk_start + 50]
+            video_params: Dict[str, Any] = {
+                "key": self._api_key,
+                "part": "snippet,statistics,contentDetails,topicDetails",
+                "id": ",".join(chunk),
+                "fields": self._VIDEO_FIELDS,
+            }
+            video_data = self._get(self._videos_url, video_params)
+            videos.extend(self._parse_videos(video_data))
+
+        logger.info("fetch_videos_by_channel_id: %s → %d vídeos.", channel_id, len(videos))
+        return videos
     def fetch_videos_by_channel_names(
         self,
         channel_names: List[str],
@@ -194,6 +244,66 @@ class YouTubeDataService:
             result[name] = videos
         return result
 
+    def fetch_videos_by_channel_names_(
+        self,
+        channel_names: List[str],
+        videos_per_channel: int = 15,
+    ) -> Dict[str, List[Video]]:
+
+        result: Dict[str, List[Video]] = {}
+
+        for name in channel_names:
+            logger.info("Resolvendo canal: %s", name)
+
+            channel: Optional[Channel] = self.fetch_channel_by_username(name)
+            if channel is None:
+                logger.warning("Canal não encontrado: %s", name)
+                result[name] = []
+                continue
+
+            uploads_playlist_id = "UU" + channel.channel_id[2:]
+
+            playlist_params: Dict[str, Any] = {
+                "key": self._api_key,
+                "part": "contentDetails",
+                "playlistId": uploads_playlist_id,
+                "maxResults": videos_per_channel,
+            }
+            
+            playlist_data: dict[str, Any] = self._get(
+                "https://www.googleapis.com/youtube/v3/playlistItems", 
+                playlist_params
+            )
+            
+            video_ids: List[str] = [
+                item["contentDetails"]["videoId"]
+                for item in playlist_data.get("items", [])
+                if item.get("contentDetails", {}).get("videoId")
+            ]
+
+            if not video_ids:
+                logger.info("Nenhum vídeo encontrado para o canal: %s", name)
+                result[name] = []
+                continue
+
+            videos: List[Video] = []
+            for chunk_start in range(0, len(video_ids), 50):
+                chunk = video_ids[chunk_start : chunk_start + 50]
+                video_params: Dict[str, Any] = {
+                    "key": self._api_key,
+                    "part": "snippet,statistics,contentDetails,topicDetails",
+                    "id": ",".join(chunk),
+                    "fields": self._VIDEO_FIELDS,
+                }
+                video_data: dict[str, Any] = self._get(self._videos_url, video_params)
+                videos.extend(self._parse_videos(video_data))
+
+            logger.info(
+                "fetch_videos_by_channel_names: %s → %d vídeos.", name, len(videos)
+            )
+            result[name] = videos
+
+        return result
     def _get_videos_by_ids(self, video_ids: List[str]) -> List[Video]:
         """Busca detalhes de uma lista de IDs, dividindo em páginas de 50."""
         videos: List[Video] = []

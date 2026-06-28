@@ -1,6 +1,6 @@
 import os
 from typing import List, Dict, Any, Optional
-from core.models.api_data_classes import (
+from src.core.models.api_data_classes import (
     Comment,
     Video,
     Subtitle,
