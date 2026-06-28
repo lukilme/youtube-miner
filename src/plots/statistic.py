@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 
-
 PALETTE = {
     "bg": "#0D0F1A",
     "panel": "#141726",
